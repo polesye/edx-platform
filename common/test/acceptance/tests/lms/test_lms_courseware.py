@@ -123,6 +123,20 @@ class CoursewareTest(UniqueCourseTest):
             expected_breadcrumb = self._create_breadcrumb(index)  # pylint: disable=no-member
             self.assertEqual(courseware_page_breadcrumb, expected_breadcrumb)
 
+    def test_skip_navigation(self):
+        """
+        Skip navigation functions as intended.
+        """
+
+        # Navigate to a course
+        self.courseware_page.visit()
+
+        # Verify the skip container is present
+        self.courseware_page.verify_skip_to_container_exists()
+
+        # Activate the link and expect focus to be on the #href
+        self.courseware_page.ensure_skip_link_sends_focus_to_container()
+
 
 class ProctoredExamTest(UniqueCourseTest):
     """
