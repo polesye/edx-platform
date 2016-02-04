@@ -219,6 +219,8 @@ def reset_student_attempts(course_id, student, module_state_key, delete_module=F
         submissions.SubmissionError: unexpected error occurred while resetting the score in the submissions API.
 
     """
+    user_id = anonymous_id_for_user(student, course_id)
+    submission_cleared = False
     try:
         # A block may have children. Clear state on children first.
         block = modulestore().get_item(module_state_key)
@@ -229,16 +231,25 @@ def reset_student_attempts(course_id, student, module_state_key, delete_module=F
                 except StudentModule.DoesNotExist:
                     # If a particular child doesn't have any state, no big deal, as long as the parent does.
                     pass
+        # Some blocks (openassessment) use StudentModule data as a key for internal submission data.
+        # Inform these blocks of the reset and allow them to handle their data.
+        clear_submission = getattr(block, "clear_submission", None)
+        if callable(clear_submission):
+            clear_submission(
+                user_id=user_id,
+                course_id=course_id.to_deprecated_string(),
+                item_id=module_state_key.to_deprecated_string()
+            )
+            submission_cleared = True
     except ItemNotFoundError:
         log.warning("Could not find %s in modulestore when attempting to reset attempts.", module_state_key)
 
-    # Reset the student's score in the submissions API
-    # Currently this is used only by open assessment (ORA 2)
+    # Reset the student's score in the submissions API, if the xblock.clear_submission() above has not done so already
     # We need to do this *before* retrieving the `StudentModule` model,
     # because it's possible for a score to exist even if no student module exists.
-    if delete_module:
+    if delete_module and not submission_cleared:
         sub_api.reset_score(
-            anonymous_id_for_user(student, course_id),
+            user_id,
             course_id.to_deprecated_string(),
             module_state_key.to_deprecated_string(),
         )
