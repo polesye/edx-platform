@@ -2332,19 +2332,19 @@ def list_financial_report_downloads(_request, course_id):
 @ensure_csrf_cookie
 @cache_control(no_cache=True, no_store=True, must_revalidate=True)
 @require_level('staff')
-def get_ora2_responses(request, course_id):
+def export_ora2_data(request, course_id):
     """
     Pushes a Celery task which will aggregate ora2 responses for a course into a .csv
     """
     course_key = SlashSeparatedCourseKey.from_deprecated_string(course_id)
     try:
-        instructor_task.api.submit_ora2_request_task(request, course_key)
-        success_status = _("The ORA2 response report is being generated.")
+        instructor_task.api.submit_export_ora2_data(request, course_key)
+        success_status = _("The ORA data report is being generated.")
 
         return JsonResponse({"status": success_status}, status=202)
     except AlreadyRunningError:
         already_running_status = _(
-            "An ORA2 response report generation task is already in "
+            "An ORA data report generation task is already in "
             "progress. Check the 'Pending Instructor Tasks' table "
             "for the status of the task. When completed, the report "
             "will be available for download in the table below."

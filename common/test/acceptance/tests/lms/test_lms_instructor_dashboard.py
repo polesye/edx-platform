@@ -609,7 +609,7 @@ class DataDownloadsTest(BaseInstructorDashboardTest):
         And I click on the "Download ORA2 Responses" button
         Then a report should be generated
         """
-        report_name = u"ORA2_responses"
+        report_name = u"ORA_data"
         self.data_download_section.generate_ora2_response_report_button.click()
         self.data_download_section.wait_for_available_report()
         self.verify_report_download(report_name)
