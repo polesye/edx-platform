@@ -1612,46 +1612,33 @@ def push_ora2_responses_to_s3(
     start_time = datetime.now(UTC)
 
     num_attempted = 1
-    num_succeeded = 0
-    num_failed = 0
     num_total = 1
-    curr_step = "Collecting responses"
 
-    def update_task_progress():
-        """Return a dict containing info about current task"""
-        current_time = datetime.now(UTC)
-        progress = {
-            'action_name': action_name,
-            'attempted': num_attempted,
-            'succeeded': num_succeeded,
-            'failed': num_failed,
-            'total': num_total,
-            'duration_ms': int((current_time - start_time).total_seconds() * 1000),
-            'step': curr_step,
-        }
-        _get_current_task().update_state(state=PROGRESS, meta=progress)
+    task_progress = TaskProgress(action_name, num_total, start_time)
+    task_progress.attempted = num_attempted
 
-        return progress
+    curr_step = {'step': "Collecting responses"}
 
-    update_task_progress()
+    task_progress.update_task_state(extra_meta=curr_step)
 
     try:
         header, datarows = collect_ora2_data(course_id)
         rows = [header] + [row for row in datarows]
     # Update progress to failed regardless of error type
     except Exception:  # pylint: disable=broad-except
-        num_failed = 1
-        update_task_progress()
+        task_progress.failed = 1
+        curr_step = {'step': "Error while collecting data"}
+
+        task_progress.update_task_state(extra_meta=curr_step)
 
         return UPDATE_STATUS_FAILED
 
-    curr_step = "Uploading CSV"
-    update_task_progress()
+    task_progress.succeeded = 1
+    curr_step = {'step': "Uploading CSV"}
+    task_progress.update_task_progress(extra_meta=curr_step)
 
     upload_csv_to_report_store(rows, 'ORA2_responses', course_id, start_time)
 
-    num_succeeded = 1
-    curr_step = "Task completed successfully"
-    update_task_progress()
+    task_progress.update_task_state(extra_meta=curr_step)
 
     return UPDATE_STATUS_SUCCEEDED
