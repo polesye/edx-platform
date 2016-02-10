@@ -1239,7 +1239,6 @@ main_vendor_js = base_vendor_js + [
     'pattern-library/js/modernizr.custom.js',
     'pattern-library/js/afontgarde.js',
     'pattern-library/js/edx-icons.js'
-    'js/vendor/draggabilly.pkgd.js',
 ]
 
 # Common files used by both RequireJS code and non-RequireJS code
