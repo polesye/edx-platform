@@ -1144,7 +1144,7 @@
                 var captions = document.querySelector('.closed-captions'),
                     draggable;
 
-                if (typeof Draggabilly === "function" && captions) {
+                if (typeof Draggabilly === "function") {
                     draggable = new Draggabilly(captions, { containment: true });
                 } else {
                     console.log('Closed captioning available but not draggable');
