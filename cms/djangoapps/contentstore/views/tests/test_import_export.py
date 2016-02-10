@@ -664,6 +664,6 @@ class TestLibraryImportExport(CourseTestCase):
             'exported_source_library',
         )
 
-        source_library = source_store.get_library(source_library_key)
-        self.assertEqual(source_library.url_name, 'course')
+        source_library = self.store.get_library(source_library_key)
+        self.assertEqual(source_library.url_name, 'library')
 
