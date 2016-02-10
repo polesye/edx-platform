@@ -508,6 +508,7 @@ class ImportTestCase(CourseTestCase):
                     finally:
                         shutil.rmtree(extract_dir)
 
+
 @override_settings(CONTENTSTORE=TEST_DATA_CONTENTSTORE)
 class ExportTestCase(CourseTestCase):
     """
@@ -666,4 +667,3 @@ class TestLibraryImportExport(CourseTestCase):
 
         source_library = self.store.get_library(source_library_key)
         self.assertEqual(source_library.url_name, 'library')
-
