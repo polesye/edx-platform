@@ -26,13 +26,13 @@ var edx = edx || {};
             var itemToFocusIndex;
 
             // if space or escape key pressed
-            if ( event.which == 32 || event.which == 27) {
+            if ( event.which === 32 || event.which === 27) {
               dropdownButton.click();
               event.preventDefault();
             }
 
             // if up arrow key pressed or shift+tab
-            if (event.which == 38 || (event.which == 9 && event.shiftKey)) {
+            if (event.which === 38 || (event.which === 9 && event.shiftKey)) {
               // if first item go to last
               if (focusedItemIndex === 0) {
                 menuItems.last().focus();
@@ -44,9 +44,9 @@ var edx = edx || {};
             }
 
             // if down arrow key pressed or tab key
-            if (event.which == 40 || event.which == 9) {
+            if (event.which === 40 || event.which === 9) {
               // if last item go to first
-              if (focusedItemIndex == menuItems.length - 1) {
+              if (focusedItemIndex === menuItems.length - 1) {
                 menuItems.first().focus();
               } else {
                 itemToFocusIndex = focusedItemIndex + 1;
