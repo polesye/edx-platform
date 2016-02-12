@@ -237,8 +237,8 @@ def reset_student_attempts(course_id, student, module_state_key, delete_module=F
         if callable(clear_submission):
             clear_submission(
                 user_id=user_id,
-                course_id=course_id.to_deprecated_string(),
-                item_id=module_state_key.to_deprecated_string()
+                course_id=unicode(course_id),
+                item_id=unicode(module_state_key)
             )
             submission_cleared = True
     except ItemNotFoundError:
