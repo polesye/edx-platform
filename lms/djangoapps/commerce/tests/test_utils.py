@@ -71,7 +71,7 @@ class EcommerceServiceTests(TestCase):
 
         expected_path = (
             '{}?course_id=course-v1%3Atest%2Bcourse%2Bid'
+            '&checkout_url=http%3A%2F%2Fecommerce_url%2Ftest_basket%2F%3Fsku%3D{}'
             '&enrollment_action=add_to_ecomm_cart'
-            '&checkout_url=http://ecommerce_url/test_basket/?sku={}'
         ).format(register_path, self.SKU)
         self.assertEqual(path, expected_path)

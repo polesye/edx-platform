@@ -236,7 +236,6 @@ class ViewsTestCase(ModuleStoreTestCase):
 
     def prepare_course_about_with_ecommerce(self, min_price=0):
         """ Helper function to prepare an commerce configuration, course and request for tests. """
-        # Create an ecommerce configuration
         checkout_page = '/test_basket/'
         sku = 'TEST123'
         CommerceConfiguration.objects.create(

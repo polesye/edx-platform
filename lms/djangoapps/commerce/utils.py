@@ -51,7 +51,9 @@ class EcommerceService(object):
         return self.config.checkout_on_ecommerce_service and not helpers.is_request_in_themed_site()
 
     def payment_page_url(self):
-        """ Return the URL for the checkout page. Example:
+        """ Return the URL for the checkout page.
+
+        Example:
             http://localhost:8002/basket/single_item/
         """
         return urljoin(settings.ECOMMERCE_PUBLIC_URL_ROOT, self.config.single_course_checkout_page)
@@ -62,6 +64,11 @@ class EcommerceService(object):
 
     def register_then_add_to_cart_path(self, course_id, sku):
         """ Construct the path for a user to register or log in and redirect to the ecommerce checkout page. """
-        return "{}?course_id={}&enrollment_action=add_to_ecomm_cart&checkout_url={}".format(
-            reverse('register_user'), urllib.quote(str(course_id)), self.checkout_page_url(sku)
+        return "{}?{}".format(
+            reverse('register_user'),
+            urllib.urlencode({
+                'course_id': course_id,
+                'enrollment_action': 'add_to_ecomm_cart',
+                'checkout_url': self.checkout_page_url(sku),
+            })
         )
