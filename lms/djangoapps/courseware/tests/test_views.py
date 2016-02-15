@@ -3,11 +3,11 @@
 Tests courseware views.py
 """
 import cgi
-from urllib import urlencode
 import ddt
 import json
 import itertools
 import unittest
+from urllib import urlencode
 from datetime import datetime, timedelta
 from HTMLParser import HTMLParser
 from nose.plugins.attrib import attr
@@ -234,69 +234,62 @@ class ViewsTestCase(ModuleStoreTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(in_cart_span, response.content)
 
-    def prepare_course_about_with_ecommerce(self, min_price=0):
-        """ Helper function to prepare an commerce configuration, course and request for tests. """
+    def assert_enrollment_link_present(self, is_anonymous, id=None):
+        """ Prepare ecommerce checkout data and assert if the ecommerce link is contained in the response. """
         checkout_page = '/test_basket/'
         sku = 'TEST123'
         CommerceConfiguration.objects.create(
             checkout_on_ecommerce_service=True,
             single_course_checkout_page=checkout_page
         )
-        course = CourseFactory.create(org="new", number="unenrolled", display_name="course")
-        CourseModeFactory(mode_slug=CourseMode.PROFESSIONAL, course_id=course.id, sku=sku, min_price=min_price)
+        course = CourseFactory.create(org='new', number='unenrolled', display_name='course')
+        CourseModeFactory(mode_slug=CourseMode.PROFESSIONAL, course_id=course.id, sku=sku, min_price=1)
+
         request = self.request_factory.get(reverse('about_course', args=[course.id.to_deprecated_string()]))
-        return checkout_page, sku, course, request
-
-    def test_ecommerce_checkout_with_anonymous(self):
-        checkout_page, sku, course, request = self.prepare_course_about_with_ecommerce()
-        request.user = AnonymousUser()
+        request.user = AnonymousUser() if is_anonymous else self.user
         mako_middleware_process_request(request)
-        ecommerce_enrollment_link = (
-            '<a href="/register?course_id={}&enrollment_action=add_to_ecomm_cart'
-            '&checkout_url={}?sku={}" class="add-to-cart">'
-        ).format(course.id, checkout_page, sku)
+
+        # Construct the link for each of the four possibilities:
+        #      (1) shopping cart is disabled and the user is not logged in
+        #      (2) shopping cart is disabled and the user is logged in
+        #      (3) shopping cart is enabled and the user is not logged in
+        #      (4) shopping cart is enabled and the user is logged in
+        href = '<a href="{}?{}" class="add-to-cart"'
+        checkout_url = '{}?sku={}'.format(checkout_page, sku)
+        if is_anonymous:
+            href = href.format(
+                reverse('register_user'),
+                urlencode([
+                    ('course_id', course.id),
+                    ('checkout_url', checkout_url),
+                    ('enrollment_action', 'add_to_ecomm_cart'),
+                ])
+            )
+        else:
+            href = href.format(checkout_page, 'sku=TEST123')
+
+        if id:
+            formatted_href = '{}{}'.format(href, ' id="{}">'.format(id))
+        else:
+            formatted_href = '{}{}'.format(href, '>')
 
         response = views.course_about(request, course.id.to_deprecated_string())
         self.assertEqual(response.status_code, 200)
-        self.assertIn(ecommerce_enrollment_link, response.content)
+        self.assertIn(formatted_href, response.content)
 
-    def test_ecommerce_checkout_with_signed_in_user(self):
-        checkout_page, sku, course, request = self.prepare_course_about_with_ecommerce()
-        request.user = self.user
-        mako_middleware_process_request(request)
-        ecommerce_enrollment_link = ('<a href="{}?sku={}" class="add-to-cart">').format(checkout_page, sku)
-        response = views.course_about(request, course.id.to_deprecated_string())
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(ecommerce_enrollment_link, response.content)
+    @ddt.data(True, False)
+    def test_ecommerce_checkout(self, is_anonymous):
+        self.assert_enrollment_link_present(is_anonymous=is_anonymous)
 
+    @ddt.data(
+        (True, "reg_then_add_to_ecomm_cart"),
+        (False, "add_to_ecomm_cart")
+    )
+    @ddt.unpack
     @unittest.skipUnless(settings.FEATURES.get('ENABLE_SHOPPING_CART'), "Shopping Cart not enabled in settings")
     @patch.dict(settings.FEATURES, {'ENABLE_PAID_COURSE_REGISTRATION': True})
-    def test_ecommerce_checkout_with_shopping_cart_anonymous(self):
-        checkout_page, sku, course, request = self.prepare_course_about_with_ecommerce(min_price=1)
-        request.user = AnonymousUser()
-        mako_middleware_process_request(request)
-        ecommerce_enrollment_link = (
-            '<a href="/register?course_id={}&enrollment_action=add_to_ecomm_cart'
-            '&checkout_url={}?sku={}" class="add-to-cart" id="reg_then_add_to_ecomm_cart">'
-        ).format(course.id, checkout_page, sku)
-
-        response = views.course_about(request, course.id.to_deprecated_string())
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(ecommerce_enrollment_link, response.content)
-
-    @unittest.skipUnless(settings.FEATURES.get('ENABLE_SHOPPING_CART'), "Shopping Cart not enabled in settings")
-    @patch.dict(settings.FEATURES, {'ENABLE_PAID_COURSE_REGISTRATION': True})
-    def test_ecommerce_checkout_with_shopping_cart_signed_in(self):
-        checkout_page, sku, course, request = self.prepare_course_about_with_ecommerce(min_price=1)
-        request.user = self.user
-        mako_middleware_process_request(request)
-        ecommerce_enrollment_link = (
-            '<a href="{}?sku={}" class="add-to-cart" id="add_to_ecomm_cart">'
-        ).format(checkout_page, sku)
-
-        response = views.course_about(request, course.id.to_deprecated_string())
-        self.assertEqual(response.status_code, 200)
-        self.assertIn(ecommerce_enrollment_link, response.content)
+    def test_ecommerce_checkout_shopping_cart_enabled(self, is_anonymous, id):
+        self.assert_enrollment_link_present(is_anonymous=is_anonymous, id=id)
 
     def test_user_groups(self):
         # depreciated function
