@@ -123,8 +123,10 @@ class ChooseModeView(View):
         )
 
         context = {
-            "course_modes_choose_url": reverse("course_modes_choose",
-                                               kwargs={'course_id': course_key.to_deprecated_string()}),
+            "course_modes_choose_url": reverse(
+                "course_modes_choose",
+                kwargs={'course_id': course_key.to_deprecated_string()}
+            ),
             "modes": modes,
             "has_credit_upsell": has_credit_upsell,
             "course_name": course.display_name_with_default_escaped,

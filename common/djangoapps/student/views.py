@@ -735,7 +735,7 @@ def dashboard(request):
         'nav_hidden': True,
         'course_programs': course_programs,
         'disable_courseware_js': True,
-        'xseries_credentials': xseries_credentials
+        'xseries_credentials': xseries_credentials,
     }
 
     ecommerce_service = EcommerceService()

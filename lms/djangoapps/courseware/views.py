@@ -1594,6 +1594,9 @@ def financial_assistance_form(request):
     enrolled_courses = [
         {'name': enrollment.course_overview.display_name, 'value': unicode(enrollment.course_id)}
         for enrollment in CourseEnrollment.enrollments_for_user(user).order_by('-created')
+
+        # Here we are doing a database query as an if condition because if the first condition fails
+        # we can avoid a database query
         if enrollment.mode != CourseMode.VERIFIED and CourseMode.objects.filter(
             Q(_expiration_datetime__isnull=True) | Q(_expiration_datetime__gt=datetime.now(UTC())),
             course_id=enrollment.course_id,
