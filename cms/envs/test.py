@@ -130,14 +130,21 @@ DATABASES = {
 }
 
 # This hack disables migrations during tests. We want to create tables directly from the models for speed.
-from django.db.migrations import loader
-class MigrationLoader(loader.MigrationLoader):
+# from django.db.migrations import loader
+# class MigrationLoader(loader.MigrationLoader):
+#
+#     @classmethod
+#     def migrations_module(cls, app_label):
+#         return "{}.nomigrations".format(app_label)
+#
+# loader.MigrationLoader = MigrationLoader
 
-    @classmethod
-    def migrations_module(cls, app_label):
-        return "{}.nomigrations".format(app_label)
-
-loader.MigrationLoader = MigrationLoader
+class DisableMigrations(object):  # pylint: disable=missing-docstring
+    def __contains__(self, item):
+        return True
+    def __getitem__(self, item):
+        return "notmigrations"
+MIGRATION_MODULES = DisableMigrations()
 
 LMS_BASE = "localhost:8000"
 FEATURES['PREVIEW_LMS_BASE'] = "preview"
